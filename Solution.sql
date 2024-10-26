@@ -29,10 +29,10 @@ SELECT
  Ubereats.ue_slug,
  CONCAT(Ubereats.Ubereats_starttime,' - ', Ubereats.Ubereats_endtime) AS ue_business_hours,
  CASE
-   WHEN Grubhub.Grubhub_startTime >= Ubereats.Ubereats_starttime
-     AND Grubhub.Grubhub_endTime <= Ubereats.Ubereats_endtime THEN 'In Range'
-   WHEN Grubhub.Grubhub_startTime < Ubereats.Ubereats_starttime
-     OR Grubhub.Grubhub_endTime > Ubereats.Ubereats_endtime THEN 'Out of Range'
+   WHEN Grubhub.Grubhub_starttime >= Ubereats.Ubereats_starttime
+     AND Grubhub.Grubhub_endtime <= Ubereats.Ubereats_endtime THEN 'In Range'
+   WHEN Grubhub.Grubhub_starttime < Ubereats.Ubereats_starttime
+     OR Grubhub.Grubhub_endtime > Ubereats.Ubereats_endtime THEN 'Out of Range'
    ELSE 'Out of Range with 5 mins difference'
  END AS is_out_of_range
 FROM Ubereats

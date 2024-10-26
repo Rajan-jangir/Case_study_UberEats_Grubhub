@@ -1,36 +1,40 @@
-WITH grubhub_hours AS (
-  SELECT 
-    JSON_EXTRACT(response, '$["slug"]') AS gh_slug,
-    JSON_EXTRACT(response, '$["openHours"]') AS gh_open_hours
-  FROM `arboreal-vision-339901.take_home_v2.virtual_kitchen_grubhub_hours`
+WITH Ubereats AS (
+ SELECT
+   slug AS ue_slug,
+   JSON_VALUE(response, '$.data.menus."26bd579e-5664-4f0a-8465-2f5eb5fbe705".sections[0].regularHours[0].startTime') AS Ubereats_starttime,
+   JSON_VALUE(response, '$.data.menus."26bd579e-5664-4f0a-8465-2f5eb5fbe705".sections[0].regularHours[0].endTime') AS Ubereats_endtime,
+   STRUCT(
+     b_name AS b_name,
+     vb_name AS vb_name
+   ) AS restaurant_info
+ FROM
+   `arboreal-vision-339901.take_home_v2.virtual_kitchen_ubereats_hours`
 ),
-ubereats_hours AS (
-  SELECT
-    JSON_EXTRACT(menu, '$[0]["key"]') AS ue_slug,
-    JSON_EXTRACT(menu, '$[0]["sections"][0]["regularHours"][0]') AS ue_start_time,
-    JSON_EXTRACT(menu, '$[0]["sections"][0]["regularHours"][1]') AS ue_end_time
-  FROM `arboreal-vision-339901.take_home_v2.virtual_kitchen_ubereats_hours`
-),
-hours_joined AS (
-  SELECT
-    gh_slug,
-    gh_open_hours,
-    ue_slug,
-    ue_start_time,
-    ue_end_time
-  FROM grubhub_hours
-  JOIN ubereats_hours 
-    ON JSON_EXTRACT(gh_open_hours, '$[0]') = ue_slug
+
+Grubhub AS (
+ SELECT
+   slug AS gh_slug,
+   JSON_VALUE(response, '$.today_availability_by_catalog.STANDARD_DELIVERY[0].from') AS Grubhub_starttime,
+   JSON_VALUE(response, '$.today_availability_by_catalog.STANDARD_DELIVERY[0].to') AS Grubhub_endtime,
+   STRUCT(
+     b_name AS b_name,
+     vb_name AS vb_name
+   ) AS restaurant_info
+ FROM
+   `arboreal-vision-339901.take_home_v2.virtual_kitchen_grubhub_hours`
 )
 SELECT
-  gh_slug,
-  JSON_EXTRACT(gh_open_hours, '$[0]') AS gh_open_hours_string,
-  ue_slug,  
-  ue_start_time,
-  ue_end_time,
-  CASE
-    WHEN PARSE_TIMESTAMP('%I:%M %p', JSON_EXTRACT(gh_open_hours, '$[1]')) BETWEEN PARSE_TIMESTAMP('%I:%M %p', ue_start_time) AND PARSE_TIMESTAMP('%I:%M %p', ue_end_time) THEN "In Range"
-    WHEN ABS(TIMESTAMP_DIFF(PARSE_TIMESTAMP('%I:%M %p', JSON_EXTRACT(gh_open_hours, '$[1]')), PARSE_TIMESTAMP('%I:%M %p', ue_start_time), MINUTE)) < 5 THEN "Out of Range with 5 mins difference"  
-    ELSE "Out of Range"
-  END AS is_out_of_range
-FROM hours_joined
+ Grubhub.gh_slug,
+ CONCAT(Grubhub.Grubhub_starttime,' - ', Grubhub.Grubhub_endtime) AS gh_business_hours,
+ Ubereats.ue_slug,
+ CONCAT(Ubereats.Ubereats_starttime,' - ', Ubereats.Ubereats_endtime) AS ue_business_hours,
+ CASE
+   WHEN Grubhub.Grubhub_startTime >= Ubereats.Ubereats_starttime
+     AND Grubhub.Grubhub_endTime <= Ubereats.Ubereats_endtime THEN 'In Range'
+   WHEN Grubhub.Grubhub_startTime < Ubereats.Ubereats_starttime
+     OR Grubhub.Grubhub_endTime > Ubereats.Ubereats_endtime THEN 'Out of Range'
+   ELSE 'Out of Range with 5 mins difference'
+ END AS is_out_of_range
+FROM Ubereats
+INNER JOIN Grubhub
+ON Ubereats.restaurant_info = Grubhub.restaurant_info;

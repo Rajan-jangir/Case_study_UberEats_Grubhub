@@ -36,7 +36,8 @@ Take the first key value pair in the menu dictionary and the first section and a
 
 Note: daysBitArray starts with Monday and indicates the days of the week for this time window is applicable. The might be more than element in the regularHours array. 
 
-![UberEats](https://github.com/tknishh/case-study-UEats-Ghub-SQL/blob/master/images/ueats_mapping.png)
+![image](https://github.com/user-attachments/assets/5b5eabfd-e28d-4f94-bb32-6d5176788f58)
+
 
 **Grubhub Business Hours** 
 
@@ -47,12 +48,17 @@ Grubhub
 | johnspizz_sicilianpi_gh | SELECT response FROM arboreal-vision-339901.take_home_v2.virtual_kitchen_grubhub_hours LIMIT 1000; |  |
 |  |  |  |
 
-![GrubHub](https://github.com/tknishh/case-study-UEats-Ghub-SQL/blob/master/images/ghub_schema.png)
+![image](https://github.com/user-attachments/assets/9b28aaed-abe4-4f14-9462-218acfadd3bd)
 
-**Output** 
+
+**Expected Output Format** 
 
 | Grubhub slug | Virtual Restuarant Business Hours | Uber Eats slug | Uber Eats Business Hours | is_out_range (expected output) |
 | --- | --- | --- | --- | --- |
 |  |  |  |  | In Range |
 |  |  |  |  | Out of Range  |
 |  |  |  |  | Out of Range with 5 mins difference between GH and UE |
+
+**Output:**
+
+![image](https://github.com/user-attachments/assets/89507082-bc1d-4349-8bec-b68a07f4cdab)
